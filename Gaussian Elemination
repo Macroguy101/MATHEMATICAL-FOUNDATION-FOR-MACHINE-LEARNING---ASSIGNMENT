@@ -1,0 +1,142 @@
+import numpy as np
+
+def gaussian_elimination(A, b):
+    """
+    Solves the linear system Ax = b using Gaussian Elimination with partial pivoting.
+    
+    Parameters:
+        A: list or numpy.ndarray of shape (n, n) - Coefficient matrix
+        b: list or numpy.ndarray of shape (n,) or (n, 1) - Right-hand side vector
+        
+    Returns:
+        x: numpy.ndarray of shape (n,) - Solution vector
+        aug_matrix: numpy.ndarray - Augmented matrix after forward elimination
+    """
+    A = np.array(A, dtype=float)
+    b = np.array(b, dtype=float).reshape(-1, 1)
+    
+    # Input validation
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError("Matrix A must be a square 2D matrix.")
+    
+    n = A.shape[0]
+    if b.shape[0] != n:
+        raise ValueError(f"Dimension mismatch: A has {n} rows, but b has {b.shape[0]} elements.")
+    
+    # Form Augmented Matrix [A | b]
+    aug = np.hstack((A, b))
+    print("Initial Augmented Matrix [A | b]:")
+    print(np.array2string(aug, precision=4, suppress_small=True))
+    print("-" * 50)
+    
+    # Forward Elimination with Partial Pivoting
+    for k in range(n - 1):
+        # Find pivot row with maximum absolute value in column k
+        max_row = k + np.argmax(np.abs(aug[k:n, k]))
+        
+        # Check for singularity or near-zero pivot
+        if np.isclose(aug[max_row, k], 0.0, atol=1e-12):
+            raise ValueError(f"System is singular or has no unique solution (zero pivot at column {k}).")
+        
+        # Swap rows if necessary
+        if max_row != k:
+            aug[[k, max_row]] = aug[[max_row, k]]
+        
+        # Row operations to eliminate entries below pivot
+        for i in range(k + 1, n):
+            factor = aug[i, k] / aug[k, k]
+            aug[i, k:] -= factor * aug[k, k:]
+    
+    # Check singularity of the last diagonal entry
+    if np.isclose(aug[n - 1, n - 1], 0.0, atol=1e-12):
+        raise ValueError("System is singular or has infinitely many/no solutions (last pivot is zero).")
+        
+    print("Augmented Matrix after Forward Elimination (Upper Triangular):")
+    print(np.array2string(aug, precision=4, suppress_small=True))
+    print("-" * 50)
+    
+    # Perform Back Substitution
+    x = back_substitution(aug[:, :-1], aug[:, -1])
+    return x, aug
+
+
+def back_substitution(U, y):
+    """
+    Performs back substitution to solve Ux = y for an upper triangular matrix U.
+    """
+    n = U.shape[0]
+    x = np.zeros(n, dtype=float)
+    
+    for i in range(n - 1, -1, -1):
+        sum_ax = np.dot(U[i, i + 1:], x[i + 1:])
+        x[i] = (y[i] - sum_ax) / U[i, i]
+        
+    return x
+
+
+def solve_and_verify(A, b, system_label="System"):
+    print(f"================== Solving {system_label} ==================")
+    A = np.array(A, dtype=float)
+    b = np.array(b, dtype=float).ravel()
+    
+    print("Coefficient Matrix (A):")
+    print(A)
+    print("RHS Vector (b):")
+    print(b)
+    print()
+    
+    try:
+        x, _ = gaussian_elimination(A, b)
+        print("Computed Solution Vector (x):")
+        for idx, val in enumerate(x):
+            print(f"  x_{idx + 1} = {val:10.6f}")
+        
+        # Verification: Ax - b
+        Ax = np.dot(A, x)
+        residual = Ax - b
+        residual_norm = np.linalg.norm(residual)
+        
+        print("\nVerification:")
+        print(f"  A * x       = {Ax}")
+        print(f"  Actual b    = {b}")
+        print(f"  Residual vector (Ax - b) = {residual}")
+        print(f"  Residual Norm (L2)       = {residual_norm:.4e}")
+        
+        if np.allclose(Ax, b, atol=1e-8):
+            print("  Status: Verified successfully (Ax == b).")
+        else:
+            print("  Status: Verification failed.")
+            
+    except ValueError as err:
+        print(f"Error encountered: {err}")
+    print("=" * 60 + "\n")
+
+
+if __name__ == "__main__":
+    # Test Case 1: 3x3 System of Linear Equations
+    A1 = [
+        [3.0, 2.0, -1.0],
+        [2.0, -2.0, 4.0],
+        [-1.0, 0.5, -1.0]
+    ]
+    b1 = [1.0, -2.0, 0.0]
+    solve_and_verify(A1, b1, system_label="Test Case 1 (3x3 System)")
+    
+    # Test Case 2: 4x4 System of Linear Equations
+    A2 = [
+        [1.0,  1.0,  0.0,  3.0],
+        [2.0,  1.0, -1.0,  1.0],
+        [3.0, -1.0, -1.0,  2.0],
+        [-1.0, 2.0,  3.0, -1.0]
+    ]
+    b2 = [4.0, 1.0, -3.0, 4.0]
+    solve_and_verify(A2, b2, system_label="Test Case 2 (4x4 System)")
+    
+    # Test Case 3: Singular Matrix (Error Handling Demo)
+    A3 = [
+        [1.0, 2.0, 3.0],
+        [2.0, 4.0, 6.0],
+        [1.0, 1.0, 1.0]
+    ]
+    b3 = [1.0, 2.0, 3.0]
+    solve_and_verify(A3, b3, system_label="Test Case 3 (Singular Matrix Test)")
