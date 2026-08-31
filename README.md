@@ -1,0 +1,2 @@
+# MATHEMATICAL-FOUNDATION-FOR-MACHINE-LEARNING---ASSIGNMENT
+This is a Repository for all assignemnts of MFML 3RD SEM
