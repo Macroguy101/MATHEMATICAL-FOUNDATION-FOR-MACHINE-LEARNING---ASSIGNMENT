@@ -14,7 +14,7 @@ This document outlines the execution steps, concepts, and requirements for the P
 ## Project 1: Gaussian Elimination Algorithm
 
 **Objective:**
-Implementation of Gaussian Elimination Algorithm for Solving Linear Systems[span_0](start_span)[span_0](end_span). The requirement is to write a generalized Python program to solve systems of linear equations without hardcoding for specific matrix dimensions[span_1](start_span)[span_1](end_span).
+Implementation of Gaussian Elimination Algorithm . The requirement is to write a generalized Python program to solve systems of linear equations without hardcoding .
 
 **Files Used:**
 - `gaussian_elimination.py`: The Python source code containing the elimination and back substitution functions.
